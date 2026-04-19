@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 import numpy as np
 from sklearn.cluster import KMeans
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 
 from cpe487587finalproject import get_kaggle_data, StudentDataset, VAE, vae_loss_function, FTTransformer, evaluate_clustering, evaluate_regression
 
@@ -28,7 +28,7 @@ def run_pipeline():
     print("Training VAE")
     print("*"*20)
     vae.train()
-    for epoch in range(20000):
+    for epoch in range(10000):
         for x_cat, x_num, _ in train_loader:
             loss_last = 10e4
             x_cat, x_num = x_cat.to(device), x_num.to(device)
@@ -60,7 +60,7 @@ def run_pipeline():
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
     cluster_labels = kmeans.fit_predict(latent_space)
     
-    evaluate_clustering(latent_space, cluster_labels, output_dir="results/outcomes")
+    evaluate_clustering(latent_space, cluster_labels, output_dir="results")
 
 
     cluster_tensor = torch.tensor(cluster_labels, dtype=torch.long).unsqueeze(1)
@@ -73,26 +73,28 @@ def run_pipeline():
     enhanced_x_num = torch.cat([full_dataset.num_tensor, latent_tensor], dim=1)
     y_target = full_dataset.target_tensor
     
-    enhanced_loader = DataLoader(
-        TensorDataset(enhanced_x_cat, enhanced_x_num, y_target), 
-        batch_size=128, shuffle=True
-    )
-
-
+    # create a new dataset and dataloader for the enhanced features
+    enhanced_dataset = TensorDataset(enhanced_x_cat, enhanced_x_num, y_target)
     model_ft = FTTransformer(new_cat_dims, new_num_cont, token_dim=32).to(device)
     optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
-    criterion = torch.nn.MSELoss()
+    fft_loss_function = torch.nn.MSELoss()
+    total_size = len(enhanced_dataset)
+    train_size = int(0.8 * total_size)
+    test_size = total_size - train_size
+    train_dataset, test_dataset = random_split(enhanced_dataset, [train_size, test_size])
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
     print("*"*20)
     print("Training FT-Transformer")
     print("*"*20)
     model_ft.train()
-    for epoch in range(20000):
-        for batch_cat, batch_num, batch_y in enhanced_loader:
+    for epoch in range(10000):
+        for batch_cat, batch_num, batch_y in train_loader:
             batch_cat, batch_num, batch_y = batch_cat.to(device), batch_num.to(device), batch_y.to(device)
             optimizer_ft.zero_grad()
             preds = model_ft(batch_cat, batch_num)
-            loss = criterion(preds, batch_y)
+            loss = fft_loss_function(preds, batch_y)
             if (epoch+1) % 100 == 0:
                 print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
             if (epoch+1) % 50 == 0:
@@ -108,7 +110,7 @@ def run_pipeline():
     model_ft.eval()
     all_preds, all_trues = [], []
     with torch.no_grad():
-        for batch_cat, batch_num, batch_y in enhanced_loader:
+        for batch_cat, batch_num, batch_y in test_loader:
             p = model_ft(batch_cat.to(device), batch_num.to(device))
             all_preds.append(p.cpu())
             all_trues.append(batch_y)

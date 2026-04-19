@@ -1,0 +1,257 @@
+Running main.py
+/home/zy0016/cpe487587finalproject/.venv/lib/python3.14/site-packages/torch/cuda/__init__.py:180: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12080). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+Using device: cpu
+Beging Training!!
+Loading and Process Data right now
+Get dataset via KaggleHub...
+Dataset loaded successfully. Shape: (14003, 16)
+/home/zy0016/cpe487587finalproject/src/cpe487587finalproject/dataprocess/data.py:46: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /pytorch/torch/csrc/utils/tensor_new.cpp:253.)
+  self.cat_tensor = torch.tensor(cat_data, dtype=torch.long).T
+********************
+Training VAE
+********************
+Running main.py
+/home/zy0016/cpe487587finalproject/.venv/lib/python3.14/site-packages/torch/cuda/__init__.py:180: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12080). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+Using device: cpu
+Beging Training!!
+Loading and Process Data right now
+Get dataset via KaggleHub...
+Dataset loaded successfully. Shape: (14003, 16)
+/home/zy0016/cpe487587finalproject/src/cpe487587finalproject/dataprocess/data.py:46: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /pytorch/torch/csrc/utils/tensor_new.cpp:253.)
+  self.cat_tensor = torch.tensor(cat_data, dtype=torch.long).T
+********************
+Training VAE
+********************
+Epoch 100, Loss: 782.0208
+Epoch 100, Loss: 781.7472
+Epoch 100, Loss: 894.5997
+Epoch 100, Loss: 897.6222
+Epoch 100, Loss: 781.9630
+Epoch 100, Loss: 906.9132
+Epoch 100, Loss: 835.3106
+Epoch 100, Loss: 823.9000
+Epoch 100, Loss: 845.9880
+Epoch 100, Loss: 794.5866
+Epoch 100, Loss: 834.5043
+Epoch 100, Loss: 807.9619
+Epoch 100, Loss: 854.5826
+Epoch 100, Loss: 790.6162
+Epoch 100, Loss: 801.0365
+Epoch 100, Loss: 766.0255
+Epoch 100, Loss: 880.9627
+Epoch 100, Loss: 864.3777
+Epoch 100, Loss: 812.2257
+Epoch 100, Loss: 846.0118
+Epoch 100, Loss: 810.9016
+Epoch 100, Loss: 850.1227
+Epoch 100, Loss: 829.3301
+Epoch 100, Loss: 785.0031
+Epoch 100, Loss: 787.2913
+Epoch 100, Loss: 834.0004
+Epoch 100, Loss: 849.4547
+Epoch 100, Loss: 866.0826
+Epoch 100, Loss: 865.7351
+Epoch 100, Loss: 775.2024
+Epoch 100, Loss: 833.9982
+Epoch 100, Loss: 928.6615
+Epoch 100, Loss: 782.3468
+Epoch 100, Loss: 824.6185
+Epoch 100, Loss: 850.7649
+Epoch 100, Loss: 780.2872
+Epoch 100, Loss: 937.1407
+Epoch 100, Loss: 801.5949
+Epoch 100, Loss: 863.0804
+Epoch 100, Loss: 793.3085
+Epoch 100, Loss: 789.2188
+Epoch 100, Loss: 733.4982
+Epoch 100, Loss: 874.8716
+Epoch 100, Loss: 745.2590
+Epoch 100, Loss: 769.6377
+Epoch 100, Loss: 815.1800
+Epoch 100, Loss: 874.6141
+Epoch 100, Loss: 819.6243
+Epoch 100, Loss: 823.1438
+Epoch 100, Loss: 878.9214
+Epoch 100, Loss: 770.9413
+Epoch 100, Loss: 857.0260
+Epoch 100, Loss: 885.7885
+Epoch 100, Loss: 809.8069
+Epoch 100, Loss: 858.3204
+Epoch 100, Loss: 858.1008
+Epoch 100, Loss: 813.4635
+Epoch 100, Loss: 871.0461
+Epoch 100, Loss: 888.8647
+Epoch 100, Loss: 898.1631
+Epoch 100, Loss: 885.3618
+Epoch 100, Loss: 825.8951
+Epoch 100, Loss: 824.6957
+Epoch 100, Loss: 861.2161
+Epoch 100, Loss: 722.3027
+Epoch 100, Loss: 862.4381
+Epoch 100, Loss: 795.6833
+Epoch 100, Loss: 820.8641
+Epoch 100, Loss: 850.6573
+Epoch 100, Loss: 943.4822
+Epoch 100, Loss: 950.1283
+Epoch 100, Loss: 910.6501
+Epoch 100, Loss: 790.5496
+Epoch 100, Loss: 852.6888
+Epoch 100, Loss: 832.4359
+Epoch 100, Loss: 829.1897
+Epoch 100, Loss: 836.7522
+Epoch 100, Loss: 877.5995
+Epoch 100, Loss: 866.7670
+Epoch 100, Loss: 832.8866
+Epoch 100, Loss: 892.4694
+Epoch 100, Loss: 809.9235
+Epoch 100, Loss: 880.0583
+Epoch 100, Loss: 825.5911
+Epoch 100, Loss: 888.3220
+Epoch 100, Loss: 909.6586
+Epoch 100, Loss: 777.7705
+Epoch 100, Loss: 841.0361
+Epoch 100, Loss: 811.4026
+Epoch 100, Loss: 853.4628
+Epoch 100, Loss: 847.6823
+Epoch 100, Loss: 931.8679
+Epoch 100, Loss: 905.0026
+Epoch 100, Loss: 965.3312
+Epoch 100, Loss: 970.7400
+Epoch 100, Loss: 834.8569
+Epoch 100, Loss: 928.5352
+Epoch 100, Loss: 901.9980
+Epoch 100, Loss: 897.0595
+Epoch 100, Loss: 907.6716
+Epoch 100, Loss: 887.1219
+Epoch 100, Loss: 910.5795
+Epoch 100, Loss: 966.9215
+Epoch 100, Loss: 939.6268
+Epoch 100, Loss: 905.9387
+Epoch 100, Loss: 835.2196
+Epoch 100, Loss: 892.2291
+Epoch 100, Loss: 1078.7543
+Epoch 100, Loss: 955.4844
+Epoch 100, Loss: 383.6051
+Running main.py
+Using device: cuda
+Beging Training!!
+Loading and Process Data right now
+Get dataset via KaggleHub...
+Dataset loaded successfully. Shape: (14003, 16)
+/home/zy0016/cpe487587finalproject/src/cpe487587finalproject/dataprocess/data.py:46: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /pytorch/torch/csrc/utils/tensor_new.cpp:253.)
+  self.cat_tensor = torch.tensor(cat_data, dtype=torch.long).T
+********************
+Training VAE
+********************
+Epoch 100, Loss: 805.9983
+Epoch 100, Loss: 767.9889
+Epoch 100, Loss: 864.9933
+Epoch 100, Loss: 828.8828
+Epoch 100, Loss: 768.5846
+Epoch 100, Loss: 851.8597
+Epoch 100, Loss: 838.9127
+Epoch 100, Loss: 813.4968
+Epoch 100, Loss: 858.8341
+Epoch 100, Loss: 807.8750
+Epoch 100, Loss: 780.6357
+Epoch 100, Loss: 810.6594
+Epoch 100, Loss: 840.1494
+Epoch 100, Loss: 796.2208
+Epoch 100, Loss: 755.8085
+Epoch 100, Loss: 699.9949
+Epoch 100, Loss: 844.3016
+Epoch 100, Loss: 854.8618
+Epoch 100, Loss: 804.4381
+Epoch 100, Loss: 856.4460
+Epoch 100, Loss: 839.0439
+Epoch 100, Loss: 878.6787
+Epoch 100, Loss: 808.6224
+Epoch 100, Loss: 723.0834
+Epoch 100, Loss: 807.1512
+Epoch 100, Loss: 838.5216
+Epoch 100, Loss: 845.0376
+Epoch 100, Loss: 813.4805
+Epoch 100, Loss: 852.2074
+Epoch 100, Loss: 805.4175
+Epoch 100, Loss: 936.0660
+Epoch 100, Loss: 858.6472
+Epoch 100, Loss: 813.2502
+Epoch 100, Loss: 817.4763
+Epoch 100, Loss: 876.9947
+Epoch 100, Loss: 760.4600
+Epoch 100, Loss: 967.8129
+Epoch 100, Loss: 761.1906
+Epoch 100, Loss: 871.7882
+Epoch 100, Loss: 784.3171
+Epoch 100, Loss: 769.2195
+Epoch 100, Loss: 781.8411
+Epoch 100, Loss: 860.7823
+Epoch 100, Loss: 740.0087
+Epoch 100, Loss: 805.6013
+Epoch 100, Loss: 766.0092
+Epoch 100, Loss: 834.2747
+Epoch 100, Loss: 865.6510
+Epoch 100, Loss: 803.7337
+Epoch 100, Loss: 858.6159
+Epoch 100, Loss: 751.8951
+Epoch 100, Loss: 931.3397
+Epoch 100, Loss: 854.2684
+Epoch 100, Loss: 813.9958
+Epoch 100, Loss: 807.8781
+Epoch 100, Loss: 859.9078
+Epoch 100, Loss: 847.0586
+Epoch 100, Loss: 845.5173
+Epoch 100, Loss: 832.9430
+Epoch 100, Loss: 851.3092
+Epoch 100, Loss: 944.2625
+Epoch 100, Loss: 858.6431
+Epoch 100, Loss: 800.7783
+Epoch 100, Loss: 863.7249
+Epoch 100, Loss: 697.8165
+Epoch 100, Loss: 888.5367
+Epoch 100, Loss: 745.8288
+Epoch 100, Loss: 826.2692
+Epoch 100, Loss: 859.7916
+Epoch 100, Loss: 939.2176
+Epoch 100, Loss: 1010.9539
+Epoch 100, Loss: 928.9077
+Epoch 100, Loss: 787.5096
+Epoch 100, Loss: 858.0208
+Epoch 100, Loss: 872.5621
+Epoch 100, Loss: 798.7245
+Epoch 100, Loss: 877.0938
+Epoch 100, Loss: 914.0147
+Epoch 100, Loss: 929.7124
+Epoch 100, Loss: 891.7567
+Epoch 100, Loss: 886.1626
+Epoch 100, Loss: 810.9151
+Epoch 100, Loss: 928.4160
+Epoch 100, Loss: 873.8160
+Epoch 100, Loss: 867.6024
+Epoch 100, Loss: 939.9270
+Epoch 100, Loss: 800.0194
+Epoch 100, Loss: 743.0414
+Epoch 100, Loss: 828.6113
+Epoch 100, Loss: 847.1051
+Epoch 100, Loss: 861.4551
+Epoch 100, Loss: 985.3952
+Epoch 100, Loss: 936.3454
+Epoch 100, Loss: 968.6234
+Epoch 100, Loss: 961.9841
+Epoch 100, Loss: 870.2958
+Epoch 100, Loss: 947.8801
+Epoch 100, Loss: 905.4238
+Epoch 100, Loss: 939.0568
+Epoch 100, Loss: 928.5261
+Epoch 100, Loss: 898.1021
+Epoch 100, Loss: 972.0665
+Epoch 100, Loss: 1058.5837
+Epoch 100, Loss: 1025.6462
+Epoch 100, Loss: 943.8967
+Epoch 100, Loss: 883.3083
+Epoch 100, Loss: 970.2981
+Epoch 100, Loss: 1149.1365
+Epoch 100, Loss: 1059.1896
+Epoch 100, Loss: 428.1628
