@@ -3,6 +3,9 @@ import torch.optim as optim
 import numpy as np
 from sklearn.cluster import KMeans
 from torch.utils.data import DataLoader, TensorDataset, random_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 
 from cpe487587finalproject import get_kaggle_data, StudentDataset, VAE, vae_loss_function, FTTransformer, evaluate_clustering, evaluate_regression
 
@@ -19,6 +22,47 @@ def run_pipeline():
     num_continuous_orig = len(full_dataset.num_cols)
     latent_dim = 16
     cat_dims_orig = full_dataset.cat_dims
+
+    print("*"*20)
+    print("Run Baselines")
+    print("*"*20)
+
+    X_baseline = np.concatenate([full_dataset.cat_tensor.numpy(), full_dataset.num_tensor.numpy()], axis=1)
+    y_baseline = full_dataset.target_tensor.numpy()
+
+    from sklearn.model_selection import train_test_split
+    X_train_base, X_test_base, y_train_base, y_test_base = train_test_split(
+        X_baseline, y_baseline, test_size=0.2, random_state=42
+    )
+    baseline_results = []
+
+    # linear regression
+    lr_model = LinearRegression()
+    lr_model.fit(X_train_base, y_train_base)
+    lr_preds = lr_model.predict(X_test_base)
+    lr_rmse = np.sqrt(mean_squared_error(y_test_base, lr_preds))
+    lr_r2 = r2_score(y_test_base, lr_preds)
+    print(f"Linear Regression: RMSE: {lr_rmse:.4f} ; R2: {lr_r2:.4f}")
+    baseline_results.append({"Model": "Linear Regression", "RMSE": lr_rmse, "R2": lr_r2})
+
+    # random forest
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_model.fit(X_train_base, y_train_base)
+    rf_preds = rf_model.predict(X_test_base)
+
+    rf_rmse = np.sqrt(mean_squared_error(y_test_base, rf_preds))
+    rf_r2 = r2_score(y_test_base, rf_preds)
+    print(f"Random Forest:  RMSE: {rf_rmse:.4f} ; R2: {rf_r2:.4f}")
+    baseline_results.append({"Model": "Random Forest", "RMSE": rf_rmse, "R2": rf_r2})
+
+    output_dir = Path("results/baseline")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / "baseline_metrics.csv"
+
+    df_baseline = pd.DataFrame(baseline_results)
+    df_baseline.to_csv(output_file, index=False)
+
+    print("Baseline models end!!!!!!!!!!!!!!!")
 
 
     vae = VAE(cat_dims_orig, num_continuous_orig, latent_dim).to(device)
@@ -75,8 +119,8 @@ def run_pipeline():
     
     # create a new dataset and dataloader for the enhanced features
     enhanced_dataset = TensorDataset(enhanced_x_cat, enhanced_x_num, y_target)
-    model_ft = FTTransformer(new_cat_dims, new_num_cont, token_dim=32).to(device)
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
+    # model_ft = FTTransformer(new_cat_dims, new_num_cont, token_dim=32).to(device)
+    # optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
     fft_loss_function = torch.nn.MSELoss()
     total_size = len(enhanced_dataset)
     train_size = int(0.8 * total_size)
@@ -88,40 +132,84 @@ def run_pipeline():
     print("*"*20)
     print("Training FT-Transformer")
     print("*"*20)
-    model_ft.train()
-    for epoch in range(10000):
-        for batch_cat, batch_num, batch_y in train_loader:
-            batch_cat, batch_num, batch_y = batch_cat.to(device), batch_num.to(device), batch_y.to(device)
-            optimizer_ft.zero_grad()
-            preds = model_ft(batch_cat, batch_num)
-            loss = fft_loss_function(preds, batch_y)
-            if (epoch+1) % 100 == 0:
-                print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
-            if (epoch+1) % 50 == 0:
-                distance = abs(loss_last - loss.item())  # compute the change in loss from the last iteration
-                if distance < 0.0001:  # if the change is smaller than the threshold, stop training
-                    break
-                else:
-                    loss_last = loss.item()  # update the last loss value
-            loss.backward()
-            optimizer_ft.step()
+    results_rmse = []
+    results_r2 = []
+
+    for i in range(3):
+        model_ft = FTTransformer(new_cat_dims, new_num_cont, token_dim=32).to(device)
+        optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
+        model_ft.train()
+        for epoch in range(10000):
+            for batch_cat, batch_num, batch_y in train_loader:
+                batch_cat, batch_num, batch_y = batch_cat.to(device), batch_num.to(device), batch_y.to(device)
+                optimizer_ft.zero_grad()
+                preds = model_ft(batch_cat, batch_num)
+                loss = fft_loss_function(preds, batch_y)
+                if (epoch+1) % 100 == 0:
+                    print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
+
+                loss.backward()
+                optimizer_ft.step()
 
 
-    model_ft.eval()
-    all_preds, all_trues = [], []
-    with torch.no_grad():
-        for batch_cat, batch_num, batch_y in test_loader:
-            p = model_ft(batch_cat.to(device), batch_num.to(device))
-            all_preds.append(p.cpu())
-            all_trues.append(batch_y)
+        model_ft.eval()
+        all_preds, all_trues = [], []
+        with torch.no_grad():
+            for batch_cat, batch_num, batch_y in test_loader:
+                p = model_ft(batch_cat.to(device), batch_num.to(device))
+                all_preds.append(p.cpu())
+                all_trues.append(batch_y)
 
-    evaluate_regression(
-        torch.cat(all_trues).numpy(), 
-        torch.cat(all_preds).numpy(), 
-        target_names=["ExamScore", "FinalGrade"],
-        output_dir="results/outcomes"
+        all_trues_np = torch.cat(all_trues).numpy()
+        all_preds_np = torch.cat(all_preds).numpy()
+        
+        # each run, we compute the RMSE and R2 for the predictions and print them out
+        current_rmse = np.sqrt(mean_squared_error(all_trues_np, all_preds_np))
+        current_r2 = r2_score(all_trues_np, all_preds_np)
+        print(f"Run {run + 1} Completed: RMSE: {current_rmse:.4f}, R2: {current_r2:.4f}")
+        
+        results_rmse.append(current_rmse)
+        results_r2.append(current_r2)
+
+        if run == 2:
+            evaluate_regression(
+                torch.cat(all_trues).numpy(), 
+                torch.cat(all_preds).numpy(), 
+                target_names=["ExamScore", "FinalGrade"],
+                output_dir="results"
+            )
+            print("Pipeline executed successfully. Results saved in 'results'.")
+
+    # compute the 95 confidencen interval for the RMSE and R2
+    mean_rmse = np.mean(results_rmse)
+    std_rmse = np.std(results_rmse)
+    ci_rmse = st.t.interval(0.95, df=len(results_rmse)-1, loc=mean_rmse, scale=st.sem(results_rmse))
+
+    mean_r2 = np.mean(results_r2)
+    std_r2 = np.std(results_r2)
+    ci_r2 = st.t.interval(0.95, df=len(results_r2)-1, loc=mean_r2, scale=st.sem(results_r2))
+
+    output_dir = Path("results/statistical_analysis")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # record the RMSE and R2 for each run in a CSV file
+    runs_data = {
+        "Run": [i + 1 for i in range(3)],
+        "RMSE": results_rmse,
+        "R2": results_r2
+    }
+    df_runs = pd.DataFrame(runs_data)
+    df_runs.to_csv(output_dir / "3_run_metrics.csv", index=False)
+
+    # final 95 confidence interval 
+    summary_text = (
+        f"RMSE: {mean_rmse:.4f} ± {std_rmse:.4f} (95% CI: [{ci_rmse[0]:.4f}, {ci_rmse[1]:.4f}])\n"
+        f"R2:   {mean_r2:.4f} ± {std_r2:.4f} (95% CI: [{ci_r2[0]:.4f}, {ci_r2[1]:.4f}])\n"
     )
-    print("Pipeline executed successfully. Results saved in 'results/outcomes/'.")
 
+    with open(output_dir / "3_run_statistical_final_summary.txt", "w") as f:
+        f.write(summary_text)
+
+    print(f"Pipeline executed successfully. Statistical results saved in: {output_dir}")
 if __name__ == "__main__":
     run_pipeline()
