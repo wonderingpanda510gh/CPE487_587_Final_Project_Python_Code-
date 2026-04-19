@@ -136,6 +136,7 @@ def run_pipeline():
     results_r2 = []
 
     for i in range(3):
+        print(f"Run {i + 1} of 3")
         model_ft = FTTransformer(new_cat_dims, new_num_cont, token_dim=32).to(device)
         optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
         model_ft.train()
@@ -166,12 +167,12 @@ def run_pipeline():
         # each run, we compute the RMSE and R2 for the predictions and print them out
         current_rmse = np.sqrt(mean_squared_error(all_trues_np, all_preds_np))
         current_r2 = r2_score(all_trues_np, all_preds_np)
-        print(f"Run {run + 1} Completed: RMSE: {current_rmse:.4f}, R2: {current_r2:.4f}")
+        print(f"Run {i + 1} Completed: RMSE: {current_rmse:.4f}, R2: {current_r2:.4f}")
         
         results_rmse.append(current_rmse)
         results_r2.append(current_r2)
 
-        if run == 2:
+        if i == 2:
             evaluate_regression(
                 torch.cat(all_trues).numpy(), 
                 torch.cat(all_preds).numpy(), 
