@@ -56,7 +56,7 @@ def run_pipeline():
     
     latent_space = torch.cat(all_latent, dim=0).numpy()
     
-    num_clusters = 4
+    num_clusters = 5
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
     cluster_labels = kmeans.fit_predict(latent_space)
     
