@@ -1,6 +1,8 @@
 import torch
 import torch.optim as optim
 import numpy as np
+from pathlib import Path
+import polars as pl
 from sklearn.cluster import KMeans
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.linear_model import LinearRegression
@@ -59,8 +61,8 @@ def run_pipeline():
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "baseline_metrics.csv"
 
-    df_baseline = pd.DataFrame(baseline_results)
-    df_baseline.to_csv(output_file, index=False)
+    df_baseline = pl.DataFrame(baseline_results)
+    df_baseline.write_csv(output_file)
 
     print("Baseline models end!!!!!!!!!!!!!!!")
 

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import math
 
 # first, we define the variational autoencoder model, which consists of an encoder and a decoder. And also we need to define the reparameterization trick, which allows us to do the backpropagation
 class VAE(nn.Module):
