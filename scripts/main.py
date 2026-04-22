@@ -4,12 +4,21 @@ import numpy as np
 from pathlib import Path
 import polars as pl
 from sklearn.cluster import KMeans
+import scipy.stats as st
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 from cpe487587finalproject import get_kaggle_data, StudentDataset, VAE, vae_loss_function, FTTransformer, evaluate_clustering, evaluate_regression
+
+# compute the 95% confidence interval
+def compute_ci(data):
+    mean_val = np.mean(data)
+    std_val = np.std(data)
+    ci = st.t.interval(0.95, df=len(data)-1, loc=mean_val, scale=st.sem(data))
+    return mean_val, std_val, ci
 
 def run_pipeline():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,43 +33,48 @@ def run_pipeline():
     num_continuous_orig = len(full_dataset.num_cols)
     latent_dim = 16
     cat_dims_orig = full_dataset.cat_dims
-
+    
     print("*"*20)
     print("Run Baselines")
     print("*"*20)
 
     X_baseline = np.concatenate([full_dataset.cat_tensor.numpy(), full_dataset.num_tensor.numpy()], axis=1)
-    y_baseline = full_dataset.target_tensor.numpy()
+    y_baseline = full_dataset.target_tensor.numpy()  # 形状为 (N, 2)
 
-    from sklearn.model_selection import train_test_split
     X_train_base, X_test_base, y_train_base, y_test_base = train_test_split(
         X_baseline, y_baseline, test_size=0.2, random_state=42
     )
+
     baseline_results = []
+    target_names = ["ExamScore", "FinalGrade"]
 
     # linear regression
     lr_model = LinearRegression()
     lr_model.fit(X_train_base, y_train_base)
     lr_preds = lr_model.predict(X_test_base)
-    lr_rmse = np.sqrt(mean_squared_error(y_test_base, lr_preds))
-    lr_r2 = r2_score(y_test_base, lr_preds)
-    print(f"Linear Regression: RMSE: {lr_rmse:.4f} ; R2: {lr_r2:.4f}")
-    baseline_results.append({"Model": "Linear Regression", "RMSE": lr_rmse, "R2": lr_r2})
+
+    print("Begin Linear Regression")
+    for i, target in enumerate(target_names):
+        rmse = np.sqrt(mean_squared_error(y_test_base[:, i], lr_preds[:, i]))
+        r2 = r2_score(y_test_base[:, i], lr_preds[:, i])
+        print(f"{target}: RMSE: {rmse:.4f} ; R2: {r2:.4f}")
+        baseline_results.append({"Model": "Linear Regression", "Target": target, "RMSE": rmse, "R2": r2})
 
     # random forest
     rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
     rf_model.fit(X_train_base, y_train_base)
     rf_preds = rf_model.predict(X_test_base)
 
-    rf_rmse = np.sqrt(mean_squared_error(y_test_base, rf_preds))
-    rf_r2 = r2_score(y_test_base, rf_preds)
-    print(f"Random Forest:  RMSE: {rf_rmse:.4f} ; R2: {rf_r2:.4f}")
-    baseline_results.append({"Model": "Random Forest", "RMSE": rf_rmse, "R2": rf_r2})
+    print("Begin Random Forest")
+    for i, target in enumerate(target_names):
+        rmse = np.sqrt(mean_squared_error(y_test_base[:, i], rf_preds[:, i]))
+        r2 = r2_score(y_test_base[:, i], rf_preds[:, i])
+        print(f"{target}: RMSE: {rmse:.4f} ; R2: {r2:.4f}")
+        baseline_results.append({"Model": "Random Forest", "Target": target, "RMSE": rmse, "R2": r2})
 
     output_dir = Path("results/baseline")
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "baseline_metrics.csv"
-
     df_baseline = pl.DataFrame(baseline_results)
     df_baseline.write_csv(output_file)
 
@@ -134,8 +148,11 @@ def run_pipeline():
     print("*"*20)
     print("Training FT-Transformer")
     print("*"*20)
-    results_rmse = []
-    results_r2 = []
+
+    results_rmse_exam = []
+    results_r2_exam = []
+    results_rmse_grade = []
+    results_r2_grade = []
 
     for i in range(3):
         print(f"Run {i + 1} of 3")
@@ -167,52 +184,67 @@ def run_pipeline():
         all_preds_np = torch.cat(all_preds).numpy()
         
         # each run, we compute the RMSE and R2 for the predictions and print them out
-        current_rmse = np.sqrt(mean_squared_error(all_trues_np, all_preds_np))
-        current_r2 = r2_score(all_trues_np, all_preds_np)
-        print(f"Run {i + 1} Completed: RMSE: {current_rmse:.4f}, R2: {current_r2:.4f}")
+        # examScore
+        rmse_exam = np.sqrt(mean_squared_error(all_trues_np[:, 0], all_preds_np[:, 0]))
+        r2_exam = r2_score(all_trues_np[:, 0], all_preds_np[:, 0])
         
-        results_rmse.append(current_rmse)
-        results_r2.append(current_r2)
+        # finalGrade
+        rmse_grade = np.sqrt(mean_squared_error(all_trues_np[:, 1], all_preds_np[:, 1]))
+        r2_grade = r2_score(all_trues_np[:, 1], all_preds_np[:, 1])
+        
+        print(f"Run {i + 1} Completed:")
+        print(f"ExamScore: RMSE: {rmse_exam:.4f}, R2: {r2_exam:.4f}")
+        print(f"FinalGrade: RMSE: {rmse_grade:.4f}, R2: {r2_grade:.4f}")
+        
+        results_rmse_exam.append(rmse_exam)
+        results_r2_exam.append(r2_exam)
+        results_rmse_grade.append(rmse_grade)
+        results_r2_grade.append(r2_grade)
 
         if i == 2:
             evaluate_regression(
-                torch.cat(all_trues).numpy(), 
-                torch.cat(all_preds).numpy(), 
+                all_trues_np, 
+                all_preds_np, 
                 target_names=["ExamScore", "FinalGrade"],
                 output_dir="results"
             )
             print("Pipeline executed successfully. Results saved in 'results'.")
 
     # compute the 95 confidencen interval for the RMSE and R2
-    mean_rmse = np.mean(results_rmse)
-    std_rmse = np.std(results_rmse)
-    ci_rmse = st.t.interval(0.95, df=len(results_rmse)-1, loc=mean_rmse, scale=st.sem(results_rmse))
+    mean_rmse_e, std_rmse_e, ci_rmse_e = compute_ci(results_rmse_exam)
+    mean_r2_e, std_r2_e, ci_r2_e = compute_ci(results_r2_exam)
 
-    mean_r2 = np.mean(results_r2)
-    std_r2 = np.std(results_r2)
-    ci_r2 = st.t.interval(0.95, df=len(results_r2)-1, loc=mean_r2, scale=st.sem(results_r2))
+    mean_rmse_g, std_rmse_g, ci_rmse_g = compute_ci(results_rmse_grade)
+    mean_r2_g, std_r2_g, ci_r2_g = compute_ci(results_r2_grade)
 
     output_dir = Path("results/statistical_analysis")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # record the RMSE and R2 for each run in a CSV file
+    # all the results from the 3 runs are stored in a CSV file for reference
     runs_data = {
         "Run": [i + 1 for i in range(3)],
-        "RMSE": results_rmse,
-        "R2": results_r2
+        "RMSE_Exam": results_rmse_exam,
+        "R2_Exam": results_r2_exam,
+        "RMSE_Grade": results_rmse_grade,
+        "R2_Grade": results_r2_grade
     }
-    df_runs = pd.DataFrame(runs_data)
-    df_runs.to_csv(output_dir / "3_run_metrics.csv", index=False)
+    df_runs = pl.DataFrame(runs_data)
+    df_runs.write_csv(output_dir / "3_run_metrics.csv")
 
-    # final 95 confidence interval 
+    # final statistical summary file
     summary_text = (
-        f"RMSE: {mean_rmse:.4f} ± {std_rmse:.4f} (95% CI: [{ci_rmse[0]:.4f}, {ci_rmse[1]:.4f}])\n"
-        f"R2:   {mean_r2:.4f} ± {std_r2:.4f} (95% CI: [{ci_r2[0]:.4f}, {ci_r2[1]:.4f}])\n"
+        "Final Statistical Summary\n"
+        "Target 1: ExamScore\n"
+        f"RMSE: {mean_rmse_e:.4f} +/- {std_rmse_e:.4f} (95% CI: [{ci_rmse_e[0]:.4f}, {ci_rmse_e[1]:.4f}])\n"
+        f"R2:   {mean_r2_e:.4f} +/- {std_r2_e:.4f} (95% CI: [{ci_r2_e[0]:.4f}, {ci_r2_e[1]:.4f}])\n\n"
+        "Target 2: FinalGrade\n"
+        f"RMSE: {mean_rmse_g:.4f} +/- {std_rmse_g:.4f} (95% CI: [{ci_rmse_g[0]:.4f}, {ci_rmse_g[1]:.4f}])\n"
+        f"R2:   {mean_r2_g:.4f} +/- {std_r2_g:.4f} (95% CI: [{ci_r2_g[0]:.4f}, {ci_r2_g[1]:.4f}])\n"
     )
 
     with open(output_dir / "3_run_statistical_final_summary.txt", "w") as f:
         f.write(summary_text)
 
-    print(f"Pipeline executed successfully. Statistical results saved in: {output_dir}")
+    print("Finished all runs!!!!!!")
 if __name__ == "__main__":
     run_pipeline()

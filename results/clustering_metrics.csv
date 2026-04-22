@@ -1,0 +1,4 @@
+metric,value
+Silhouette,0.1604156643152237
+Davies_Bouldin,1.9184379725854743
+Calinski_Harabasz,1903.359090017425

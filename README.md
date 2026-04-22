@@ -14,7 +14,7 @@ Predicting student performance is a classic engineering problem in Educational I
 - Format: Table Data (.csv).
 - Source: *Najem, Kamal. Student Performance and Learning Behavior Dataset for Educational Analytics. Zenodo. https://doi.org/10.5281/zenodo.16459132*
 
-#### Feature Description
+### Feature Description
 | Feature Name | Description | Data Type |
 | :--- | :--- | :--- |
 | **StudyHours** | Number of study hours per week | Numeric |
@@ -33,3 +33,65 @@ Predicting student performance is a classic engineering problem in Educational I
 | **StressLevel** | Self-reported stress level | Numeric Scale |
 | **ExamScore** | Score obtained in the main exam (Target 1) | Numeric |
 | **FinalGrade** | Final course grade (Target 2) | Numeric |
+
+
+### Running the Code
+##### Step 0
+Please install uv
+```bash
+# mac and linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# more information see uv website
+https://docs.astral.sh/uv/getting-started/installation/#__tabbed_1_1
+```
+##### Step 1
+And then, clone this repo and synchornize all the necessary dependencies
+```bash
+# first to clone this repo and synchronize all the necessary package
+git clone https://github.com/wonderingpanda510gh/CPE487_587_Final_Project_Python_Code-.git
+cd cpe487587finalproject
+uv venv --python 3.12
+source .venv/bin/activate
+uv sync
+uv build
+```
+##### Step 2
+```bash
+# make the scripts excutable
+chmod +x scripts/main.sh
+```
+##### Step 3
+If you run this code locally:
+```bash
+# excute the scripts
+bash scripts/main.sh
+```
+
+If you run this code on some server and you don't want to keep the window always on
+```bash
+# first use tmux
+tmux new -s main
+
+# then run the scripts
+bash scripts/main.sh
+
+# finally, quit the tmux
+ctrl+b, then d
+```
+
+Next time you want to check the code:
+```bash
+# check all the tmux threads
+tmux -ls
+
+# go to the threads you want
+tmux a -t main
+```
+
+### Authors
+**Zhehao Yi** - *Algorithm Design, Implementation & Writing*  
+If you have any questions, please reach out to **Zhehao Yi** at zhehao.yi@uah.edu
